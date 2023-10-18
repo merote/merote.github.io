@@ -68,25 +68,25 @@ const Home = () => {
           </RadioGroup>
         </FormControl>
 
-        <div style={{ paddingTop: 30 }}>
+        <div className="Rounds-slider" style={{ paddingTop: 30 }}>
           <Box sx={{ width: 300 }}>
-            <Typography gutterBottom>Rounds </Typography>
+            <Typography gutterBottom>Rounds ( 6/36 results per round )</Typography>
             <Slider
               aria-label="Restricted values"
               defaultValue={10}
-              valueLabelFormat={valueLabelFormat}
+              //valueLabelFormat={valueLabelFormat}
               getAriaValueText={valuetext}
-              step={10}
-              valueLabelDisplay="auto"
-              marks={marks}
-              max={50}
+              step={1}
+              valueLabelDisplay="on"
+              //marks={marks}
+              max={30}
             />
           </Box>
         </div>
 
         <div style={{ paddingTop: 30 }}>
           <Box sx={{ width: 300 }}>
-            <Typography gutterBottom>Variance (removed dices)</Typography>
+            <Typography gutterBottom>Variance % (removed dices)</Typography>
             <Slider
               aria-label="Restricted values"
               defaultValue={10}
