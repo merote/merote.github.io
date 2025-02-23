@@ -11,8 +11,10 @@ import Slider from '@mui/material/Slider';
 import Typography from '@mui/material/Typography';
 import { useRef } from 'react';
 import DiceComponent from './Dice/Dice';
+import InfoDialog from './Dice/InfoDialog';
+import ConfirmDialog from './Dice/ConfirmDialog';
 import InfoIcon from '@mui/icons-material/Info';
-import Dialog from '@mui/material/Dialog';
+
 
 const Home = () => {
 
@@ -60,19 +62,19 @@ const Home = () => {
 
   //So far only 6 sided dice
   type diceValue = 1 | 2 | 3 | 4 | 5 | 6 | undefined
-  
+
   interface Values {
     value1: diceValue;
     value2: diceValue;
   }
 
-  const diceRef = useRef<HTMLInputElement>(null);
- 
   const [dices, setDices] = React.useState('2');
   const [rounds, setRounds] = React.useState(2);
   const [variance, setVariance] = React.useState(10);
   const [values, setValues] = React.useState<Values[]>([]);
-  //const [nextValues, setCurrentValues] = React.useState<Values>({value1: 1, value2: 2});
+  const [isOpen, setIsOpen] = React.useState({ infoDialog: false, confirmDialog: false });
+  const [state, setState] = React.useState('reset');
+
 
   const generateValues = () => {
     setValues([]);
@@ -100,35 +102,47 @@ const Home = () => {
     for (let i = 0; i < amountOfValues; i++) {
       const index: number = Math.floor(Math.random() * newValues.length);
       randomOrderValues.push(newValues[index]);
-      newValues.splice(index,1);
+      newValues.splice(index, 1);
     }
     console.log(randomOrderValues)
     setValues([...randomOrderValues]);
-    }
-  
+    setState('started');
+  }
 
-  
   const rollDices = () => {
-    setValues(values.filter((v,i) => i !== 0));
+    setValues(values.filter((v, i) => i !== 0));
 
     (document.querySelector("#Dice1 button") as HTMLButtonElement).click();
     if (dices === '2') {
       (document.querySelector("#Dice2 button") as HTMLButtonElement).click();
-    }  
+    }
+    console.log(window.innerWidth)
   }
 
   const handleChange = (value: any, type: string) => {
     if (type === 'dices') {
       setDices(value);
     } else if (type === 'rounds') {
-        setRounds(value);
+      setRounds(value);
     } else if (type === 'variance') {
-        setVariance(value);
-    } 
+      setVariance(value);
+    }
   };
 
   const openInfoDialog = () => {
+    setIsOpen({ ...isOpen, infoDialog: true });
+  }
 
+  const openConfrimDialog = () => {
+    setIsOpen({ ...isOpen, infoDialog: false });
+  }
+
+  const handleConfirmDialog = (value: boolean) => {
+    console.log(value)
+    if (value) {
+      setState('reset');
+    }
+    setIsOpen({ ...isOpen, confirmDialog: false });
   }
 
   const valueLabelFormat = (value: number, type: string) => {
@@ -137,82 +151,106 @@ const Home = () => {
 
   return (
     <div className="App">
-      <header className="App-header">
+      <div className="App-header">
+        <b>Dice luck minimizer</b>
+        <InfoIcon className='InfoIcon'
+          color='primary'
+          onClick={() => openInfoDialog()}
+          fontSize='large'>
+        </InfoIcon>
+      </div>
 
-        <span style={{ paddingBottom: 60 }}>
+      <div className='Container'>
+
+        <span style={{ paddingBottom: 60, pointerEvents: 'none' }}>
           <span id='Dice1'>
             <DiceComponent value={values[0]?.value1 as diceValue}></DiceComponent>
           </span>
           {dices === '2' ? (
-            <span id='Dice2' style={{ paddingLeft: 100 }}>
+            <span id='Dice2' style={{ paddingLeft: 50 }}>
               <DiceComponent value={values[0]?.value2 as diceValue}></DiceComponent>
             </span>)
             : undefined}
         </span>
 
-        <div style={{ paddingBottom: 30 }}>
-          <Button variant="contained"
-            disabled={values.length < 1}
-            onClick={() => rollDices()}>
-            Roll
-          </Button>
+        <div>
+          <div style={{ paddingBottom: 30 }}>
+            <Button variant="contained"
+              disabled={values.length < 1 || state !== 'started'}
+              onClick={() => rollDices()}>
+              Roll
+            </Button>
+          </div>
+
+          <div>
+            <FormControl component="fieldset" disabled={state === 'started'}>
+              <FormLabel style={{ lineHeight: 2 }} component="legend" disabled={state === 'started'}>Number of dices</FormLabel>
+              <RadioGroup aria-label="dices" name="dices"
+                value={dices}
+                onChange={(event, value) => handleChange(value, 'dices')}>
+                <FormControlLabel value="1" control={<Radio />} label="1" />
+                <FormControlLabel value="2" control={<Radio />} label="2" />
+              </RadioGroup>
+            </FormControl>
+          </div>
+
+          <div className="Rounds-slider" style={{ paddingTop: 20 }}>
+            <Box sx={{ width: 300 }}>
+              <Typography gutterBottom>Rounds ( {dices === '1' ? '6' : '36'} outcomes per round )</Typography>
+              <Slider
+                aria-label="Restricted values"
+                defaultValue={2}
+                valueLabelFormat={(e) => valueLabelFormat(e, 'rounds')}
+                step={1}
+                onChange={(event, value) => handleChange(value, 'rounds')}
+                valueLabelDisplay="on"
+                marks={roundMarks}
+                disabled={state === 'started'}
+                min={1}
+                max={10}
+              />
+            </Box>
+          </div>
+
+          <div style={{ paddingTop: 30 }}>
+            <Box sx={{ width: 300 }}>
+              <Typography gutterBottom>Variance (randomly removed outcomes)</Typography>
+              <Slider
+                aria-label="Restricted values"
+                defaultValue={10}
+                valueLabelFormat={(value) => valueLabelFormat(value, 'variance')}
+                onChange={(event, value) => handleChange(value, 'variance')}
+                step={10}
+                valueLabelDisplay="auto"
+                marks={marks}
+                max={50}
+                disabled={state === 'started'}
+              />
+            </Box>
+          </div>
+
+          <div style={{ paddingTop: 25, paddingBottom: 30, fontSize: 20 }}>
+            Total outcomes: {Math.floor(Math.pow(6, parseInt(dices)) * rounds * ((100 - variance) / 100))}
+          </div>
+
+          <div>
+            <Button variant="contained"
+              //disabled={!(state === 'generated')} 
+              onClick={() => state === 'started' ? setIsOpen({ ...isOpen, confirmDialog: true }) : generateValues()}>
+              {state === 'started' ? 'Reset' : 'Start'}
+            </Button>
+          </div>
         </div>
 
-        <FormControl component="fieldset">
-          <FormLabel style={{ lineHeight: 2 }} component="legend">Number of dices</FormLabel>
-          <RadioGroup aria-label="dices" name="dices" value={dices} onChange={(event, value) => handleChange(value, 'dices')}>
-            <FormControlLabel value="1" control={<Radio />} label="1" />
-            <FormControlLabel value="2" control={<Radio />} label="2" />
-          </RadioGroup>
-        </FormControl>
+        <ConfirmDialog
+          isDialogOpened={isOpen.confirmDialog}
+          handleCloseDialog={(value: boolean) => handleConfirmDialog(value)}/>
 
-        <div className="Rounds-slider" style={{ paddingTop: 30 }}>
-          <Box sx={{ width: 300 }}>
-            <Typography gutterBottom>Rounds ( {dices === '1' ? '6' : '36'} outcomes per round )</Typography>
-            <Slider
-              aria-label="Restricted values"
-              defaultValue={2}
-              valueLabelFormat={(e) => valueLabelFormat(e, 'rounds')}
-              step={1}
-              onChange={(event, value) => handleChange(value, 'rounds')}
-              valueLabelDisplay="on"
-              marks={roundMarks}
-              min={1}
-              max={10}
-            />
-          </Box>
-        </div>
+        <InfoDialog
+          isDialogOpened={isOpen.infoDialog}
+          handleCloseDialog={() => setIsOpen({ ...isOpen, infoDialog: false })}/>
 
-        <div style={{ paddingTop: 30 }}>
-          <Box sx={{ width: 300 }}>
-            <Typography gutterBottom>Variance (randomly removed outcomes)</Typography>
-            <Slider
-              aria-label="Restricted values"
-              defaultValue={10}
-              valueLabelFormat={(value) => valueLabelFormat(value, 'variance')}
-              onChange={(event, value) => handleChange(value, 'variance')}
-              step={10}
-              valueLabelDisplay="auto"
-              marks={marks}
-              max={50}
-            />
-          </Box>
-        </div>
-
-        <div style={{ paddingTop: 25, fontSize: 20 }}>
-          Total outcomes: {Math.floor(Math.pow(6, parseInt(dices)) * rounds * ((100 - variance) / 100))}
-        </div>
-
-        <div style={{ paddingTop: 30 }}>
-          <Button variant="contained"
-            onClick={() => generateValues()}
-          >
-            Generate values
-          </Button>
-        </div>
-        
-
-      </header>
+      </div>
     </div>
   );
 }
