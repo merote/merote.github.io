@@ -184,7 +184,7 @@ const Home = () => {
 
           <div>
             <FormControl component="fieldset" disabled={state === 'started'}>
-              <FormLabel style={{ lineHeight: 2 }} component="legend" disabled={state === 'started'}>Number of dices</FormLabel>
+              <FormLabel style={{ lineHeight: 2 }} component="legend" disabled={state === 'started'}>Number of dice</FormLabel>
               <RadioGroup aria-label="dices" name="dices"
                 value={dices}
                 onChange={(event, value) => handleChange(value, 'dices')}>
