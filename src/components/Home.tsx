@@ -116,7 +116,6 @@ const Home = () => {
     if (dices === '2') {
       (document.querySelector("#Dice2 button") as HTMLButtonElement).click();
     }
-    console.log(window.innerWidth)
   }
 
   const handleChange = (value: any, type: string) => {
