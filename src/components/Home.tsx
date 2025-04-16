@@ -72,6 +72,7 @@ const Home = () => {
   const [rounds, setRounds] = React.useState(2);
   const [variance, setVariance] = React.useState(10);
   const [values, setValues] = React.useState<Values[]>([]);
+  const [nextValue, setNextValue] = React.useState<Values>({value1: undefined, value2: undefined});
   const [isOpen, setIsOpen] = React.useState({ infoDialog: false, confirmDialog: false });
   const [state, setState] = React.useState('reset');
 
@@ -96,16 +97,22 @@ const Home = () => {
         })
       }
     }
-    const randomOrderValues: Values[] = [];
-    const amountOfValues: number = Math.round(newValues.length * ((100 - variance) / 100));
-    console.log((Math.round(newValues.length * ((100 - variance) / 100))))
-    for (let i = 0; i < amountOfValues; i++) {
+    // CODE IF RANDOM ORDER OF VALUES DONE FIRST
+    /*  const randomOrderValues: Values[] = [];
+      const amountOfValues: number = Math.round(newValues.length * ((100 - variance) / 100));
+
+      for (let i = 0; i < amountOfValues; i++) {
       const index: number = Math.floor(Math.random() * newValues.length);
       randomOrderValues.push(newValues[index]);
       newValues.splice(index, 1);
     }
-    console.log(randomOrderValues)
-    setValues([...randomOrderValues]);
+    setValues([...randomOrderValues]); */
+    const index: number = Math.floor(Math.random() * newValues.length);
+    setNextValue(newValues[index]);
+    setValues(newValues.filter((v, i) => i !== index));
+    console.log(values)
+    console.log(index)
+    //randomNextValue();
     setState('started');
   }
 
@@ -116,7 +123,23 @@ const Home = () => {
     if (dices === '2') {
       (document.querySelector("#Dice2 button") as HTMLButtonElement).click();
     }
-    console.log(window.innerWidth)
+  }
+
+  const randomNextValue = () => {
+    (document.querySelector("#Dice1 button") as HTMLButtonElement).click();
+    if (dices === '2') {
+      (document.querySelector("#Dice2 button") as HTMLButtonElement).click();
+    }
+    if (values.length === 0) {
+      setState("finished");
+      return
+    }
+    const index: number = Math.floor(Math.random() * values.length);
+    setNextValue(values[index]);
+    setValues(values.filter((v, i) => i !== index));
+
+    console.log(index)
+    console.log(values)
   }
 
   const handleChange = (value: any, type: string) => {
@@ -138,8 +161,8 @@ const Home = () => {
   }
 
   const handleConfirmDialog = (value: boolean) => {
-    console.log(value)
     if (value) {
+      setValues([]);
       setState('reset');
     }
     setIsOpen({ ...isOpen, confirmDialog: false });
@@ -164,11 +187,11 @@ const Home = () => {
 
         <span style={{ paddingBottom: 60, pointerEvents: 'none' }}>
           <span id='Dice1'>
-            <DiceComponent value={values[0]?.value1 as diceValue}></DiceComponent>
+            <DiceComponent value={nextValue.value1}></DiceComponent>
           </span>
           {dices === '2' ? (
             <span id='Dice2' style={{ paddingLeft: 50 }}>
-              <DiceComponent value={values[0]?.value2 as diceValue}></DiceComponent>
+              <DiceComponent value={nextValue.value2}></DiceComponent>
             </span>)
             : undefined}
         </span>
@@ -176,8 +199,8 @@ const Home = () => {
         <div>
           <div style={{ paddingBottom: 30 }}>
             <Button variant="contained"
-              disabled={values.length < 1 || state !== 'started'}
-              onClick={() => rollDices()}>
+              disabled={state !== 'started' && values.length === 0}
+              onClick={() => randomNextValue()}>
               Roll
             </Button>
           </div>
