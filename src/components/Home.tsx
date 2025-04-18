@@ -68,10 +68,12 @@ const Home = () => {
     value2: diceValue;
   }
 
+  let countOfRemovedValues: number = 0;
   const [dices, setDices] = React.useState('2');
   const [rounds, setRounds] = React.useState(2);
   const [variance, setVariance] = React.useState(10);
   const [values, setValues] = React.useState<Values[]>([]);
+
   const [nextValue, setNextValue] = React.useState<Values>({value1: undefined, value2: undefined});
   const [isOpen, setIsOpen] = React.useState({ infoDialog: false, confirmDialog: false });
   const [state, setState] = React.useState('reset');
@@ -107,11 +109,16 @@ const Home = () => {
       newValues.splice(index, 1);
     }
     setValues([...randomOrderValues]); */
+
+    console.log((Math.pow(6, parseInt(dices)) * rounds * (variance / 100)))
+    console.log(Math.round(Math.pow(6, parseInt(dices)) * rounds * (variance / 100)))
+    countOfRemovedValues = Math.round(newValues.length * (variance / 100));
     const index: number = Math.floor(Math.random() * newValues.length);
     setNextValue(newValues[index]);
     setValues(newValues.filter((v, i) => i !== index));
     console.log(values)
     console.log(index)
+    console.log(countOfRemovedValues)
     //randomNextValue();
     setState('started');
   }
@@ -130,7 +137,7 @@ const Home = () => {
     if (dices === '2') {
       (document.querySelector("#Dice2 button") as HTMLButtonElement).click();
     }
-    if (values.length === 0) {
+    if (values.length === 0 || values.length < countOfRemovedValues) {
       setState("finished");
       return
     }
@@ -253,7 +260,7 @@ const Home = () => {
           </div>
 
           <div style={{ paddingTop: 25, paddingBottom: 30, fontSize: 20 }}>
-            Total outcomes: {Math.floor(Math.pow(6, parseInt(dices)) * rounds * ((100 - variance) / 100))}
+            Total outcomes: {Math.round(Math.pow(6, parseInt(dices)) * rounds * ((100 - variance) / 100))}
           </div>
 
           <div>
